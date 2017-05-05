@@ -136,6 +136,7 @@
     this.$el      = $(el);
     this.interval = null;
     this.offset   = {};
+    this.correction = 0;
     this.options  = $.extend({}, defaultOptions);
     // console.log(this.options);
     // This helper variable is necessary to mimick the previous check for an
@@ -215,7 +216,7 @@
       var now = new Date(),
           newTotalSecsLeft;
       // Create an offset date object
-      newTotalSecsLeft = this.finalDate.getTime() - now.getTime(); // Millisecs
+      newTotalSecsLeft = this.finalDate.getTime() - now.getTime() - this.correction; // Millisecs
       // Calculate the remaining time
       newTotalSecsLeft = Math.ceil(newTotalSecsLeft / 1000); // Secs
       // If is not have to elapse set the finish
@@ -230,7 +231,7 @@
         this.totalSecsLeft = newTotalSecsLeft;
       }
       // Check if the countdown has elapsed
-      this.elapsed = (now >= this.finalDate);
+      this.elapsed = (now - this.correction >= this.finalDate);
       // Calculate the offsets
       this.offset = {
         seconds     : this.totalSecsLeft % 60,
@@ -256,11 +257,16 @@
         this.dispatchEvent('update');
       }
     },
+    correction: function(milliseconds) {
+      // update the time correction
+      this.correction = milliseconds;
+    },
     dispatchEvent: function(eventName) {
       var event = $.Event(eventName + '.countdown');
       event.finalDate     = this.finalDate;
       event.elapsed       = this.elapsed;
       event.offset        = $.extend({}, this.offset);
+      event.correction    = this.correction;
       event.strftime      = strftime(this.offset);
       this.$el.trigger(event);
     }
